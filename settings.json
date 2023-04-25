@@ -1,2 +1,10 @@
-{"name": "John Doe"}
+{
+  "name":1,
+  "haha":2,
+  "e"  :  "e",
+  "lozijy": [1,2,3],
+  "student": {
+    "a": 1
+  }
+}
   

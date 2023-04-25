@@ -95,6 +95,70 @@ public:
         input_ = input;
         return ParseValue();
     }
+    int count=0;
+    int last=0;
+    void print(JsonValue* json){
+
+        //Null
+        if(static_cast<int>(json->GetType()) == 0){
+            cout<<"Null"<<endl;
+            return ;
+        }
+        //布尔值
+        else if(static_cast<int>(json->GetType()) == 1){
+            cout<<dynamic_cast<JsonBoolean*>(json)->GetValue()<<endl;
+            return;
+        }
+        //字符串
+        else if(static_cast<int>(json->GetType()) == 2){
+            cout<<dynamic_cast<JsonString*>(json)->GetValue()<<endl;
+            return;
+        }
+        //数字
+        else if(static_cast<int>(json->GetType()) == 3){
+            cout<<dynamic_cast<JsonNumber*>(json)->GetValue()<<endl;
+            return;
+        }
+        //对象
+        else if(static_cast<int>(json->GetType()) == 4){
+            cout<<"{"<<endl;
+            const vector<std::pair<string, JsonValue*>>& members = static_cast<JsonObject*>(json)->GetMembers();
+            count++;
+            for (const auto& member : members) {
+                const string& key = member.first;
+                if(count>1){
+                    for (int i = 0; i < last+4; ++i) {
+                        cout<<" ";
+                    }
+                }
+                if(count==1) {
+                    last = key.size();
+                }
+                JsonValue* value = member.second;
+                for (int i = 0; i < count; ++i) {
+                    cout <<" ";
+                }
+                cout <<  key << " : " ;
+                print(member.second);
+            }
+            for (int i = 0; i < count+last+2; ++i) {
+                cout <<" ";
+            }
+            cout<<"}"<<endl;
+            count=0;
+            return ;
+        }
+        //数组
+        else if(static_cast<int>(json->GetType()) == 5){
+            cout<<"["<<endl;
+            const vector<JsonValue*>& elements = static_cast<JsonArray*>(json)->GetElements();
+            for (const auto& element : elements) {
+                print(element);
+            }
+            cout<<"]"<<endl;
+            return;
+        }
+    }
 
 private:
     JsonValue* ParseValue() {
@@ -104,6 +168,12 @@ private:
         if (c == 'n') {
             return ParseNull();
         }
+//        else if(c=='/'){
+//            ParseVaccum();
+//        }
+//        else if(c==' '){
+//            Parsekong();
+//        }
         else if (c == 't' || c == 'f') {
             return ParseBoolean();
         }
@@ -127,7 +197,12 @@ private:
         Expect("null");
         return new JsonNull();
     }
-
+    void Parsekong(){
+        Expect(" ");
+    }
+    void ParseVaccum(){
+        Expect("/n");
+    }
     JsonBoolean* ParseBoolean() {
         bool value = false;
         if (Consume("true")) {
@@ -218,11 +293,18 @@ private:
         Expect("{");
 
         while (pos_ < input_.size() && input_[pos_] != '}') {
-            cout<<1<<endl<<endl;
+            while(input_[pos_]!='"'){
+                pos_++;
+            }
             string key = ParseString()->GetValue();
+            while(input_[pos_]==' '){
+                pos_++;
+            }
             Expect(":");
+            while(input_[pos_]==' '){
+                pos_++;
+            }
             JsonValue* value = ParseValue();
-
             if (key.empty() || value == nullptr) {
                 delete object;
                 return nullptr;
@@ -288,38 +370,16 @@ private:
 
 int main() {
     // 从文件中读取JSON字符串
-    ifstream input_file("settings.json");
+    ifstream input_file("../settings.json");
     string input((std::istreambuf_iterator<char>(input_file)), std::istreambuf_iterator<char>());
+//    string line;
+//    getline(input_file,line);
     input_file.close();
 
     // 解析JSON字符串
     JsonParser parser;
     JsonValue* json = parser.Parse(input);
-
-    // 输出解析结果
-    switch (json->GetType()) {
-    case JsonType::JsonObject:
-    {   
-        cout<<1<<endl;
-        const vector<std::pair<string, JsonValue*>>& members = static_cast<JsonObject*>(json)->GetMembers();
-        for (const auto& member : members) {
-            const string& key = member.first;
-            JsonValue* value = member.second;
-            cout << "key: " << key << ", value type: " << static_cast<int>(value->GetType()) << endl;
-        }
-        break;
-    }
-    case JsonType::JsonArray:
-    {
-        const vector<JsonValue*>& elements = static_cast<JsonArray*>(json)->GetElements();
-        for (const auto& element : elements) {
-            cout << "element type: " << static_cast<int>(element->GetType()) << endl;
-        }
-        break;
-    }
-    default:
-        break;
-    }
+    parser.print(json);
     delete json;
     return 0;
 }

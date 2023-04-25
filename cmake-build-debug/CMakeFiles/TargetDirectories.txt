@@ -1,0 +1,3 @@
+/home/lonux/桌面/jsonParser/cmake-build-debug/CMakeFiles/jsonParser.dir
+/home/lonux/桌面/jsonParser/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/lonux/桌面/jsonParser/cmake-build-debug/CMakeFiles/rebuild_cache.dir
